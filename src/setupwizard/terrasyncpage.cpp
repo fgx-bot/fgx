@@ -4,7 +4,8 @@
 #include <QGridLayout>
 #include <QFileDialog>
 
-#include "terrasyncpage.h"
+#include "setupwizard/terrasyncpage.h"
+#include "xobjects/xopt.h"
 
 TerraSyncPage::TerraSyncPage(MainObject *mob, QWidget *parent) :
     QWizardPage(parent)
@@ -12,8 +13,8 @@ TerraSyncPage::TerraSyncPage(MainObject *mob, QWidget *parent) :
 
 	mainObject = mob;
 
-	setTitle("Setup terrasync");
-	setSubTitle("Select the ??? for terrasync");
+	setTitle("Setup TerraSync");
+	setSubTitle("Select the directory for TerraSync");
 
 	QGridLayout *gridLayout = new QGridLayout();
 	setLayout(gridLayout);
@@ -98,8 +99,9 @@ void TerraSyncPage::check_paths()
 //= InitializePage
 void TerraSyncPage::initializePage()
 {
-	checkBoxUseTerrasync->setChecked( mainObject->settings->value("terrasync_enabled", "1").toBool() );
-	txtTerraSyncPath->setText( mainObject->settings->value("terrasync_path", "").toString() );
+	XOpt opt = mainObject->X->get_opt("terrasync_path");
+	checkBoxUseTerrasync->setChecked( opt.enabled );
+	txtTerraSyncPath->setText( opt.value );
 	on_checkbox_clicked();
 }
 

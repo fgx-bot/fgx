@@ -13,6 +13,7 @@
 #include <QtGui/QTabBar>
 #include <QtGui/QLabel>
 #include <QtGui/QStatusBar>
+#include <QtGui/QToolButton>
 
 #include "xobjects/mainobject.h"
 
@@ -40,44 +41,57 @@ public:
 	MainObject *mainObject;
 
 
+
+	QButtonGroup *groupUseAircraft;
+	QLineEdit *txtAircraftPath;
+	QToolButton *buttSelectPath;
+
 	QLabel *aeroImageLabel;
-	QTabBar *tabsView;
-	QCheckBox *checkBoxUseDefault;
+	QCheckBox *checkViewNested;
+
 
 	QLineEdit *txtNav1;
 	QLineEdit *txtNav2;
-	QLineEdit *txtAdf;
-	QLineEdit *txtComm1;
-	QLineEdit *txtComm2;
+	QLineEdit *txtAdf1;
+	QLineEdit *txtAdf2;
+	QLineEdit *txtCom1;
+	QLineEdit *txtCom2;
+	
+	QCheckBox *checkBoxUseDefaultFuel;
+	QCheckBox *checkBoxFuelFreeze;
+	QLineEdit *txtTank1;
+	QLineEdit *txtTank2;
+	QLineEdit *txtTank3;
 
 	void initialize();
-	void save_settings();
-	void load_settings();
+
 	QString validate();
 	void select_node(QString aero);
 	QString selected_aircraft();
 
-
-
 private:
 	QTreeWidget *treeWidget;
-
     QStatusBar *statusBarTree;
-    QStatusBar *statusBarAero;
-
-
-
-
+	QLabel *labelAeroPath;
+	QToolButton *buttonAeroPath;
 
 signals:
-	void set_arg(QString action, QString arg, QString value);
+	void setx( QString option, bool enabled,QString value);
 
 public slots:
 	void load_tree();
-	void on_use_default_clicked();
+	void on_set_aircraft();
+	void on_select_path();
 	void on_tree_selection_changed();
 	void on_reload_cache();
 
+	void on_enable_fuel_freeze_clicked();
+
+	void on_navs_changed();
+	void on_fuel_changed();
+
+	void on_upx(QString option, bool enabled, QString value);
+	void on_open_aircraft_path();
 };
 
 #endif // AIRCRAFTWIDGET_H

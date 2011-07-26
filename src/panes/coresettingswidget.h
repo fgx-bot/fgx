@@ -11,6 +11,7 @@
 
 #include "xobjects/mainobject.h"
 #include "xwidgets/xgroupboxes.h"
+#include "xwidgets/xmessagelabel.h"
 
 class MainObject;
 
@@ -21,6 +22,8 @@ public:
 	explicit CoreSettingsWidget(MainObject *mOb, QWidget *parent = 0);
 
 	MainObject *mainObject;
+	
+	XMessageLabel *messageLabel;
 
 
 	//* Callsign
@@ -30,11 +33,6 @@ public:
 	QComboBox *comboScreenSize;
 	QCheckBox *checkBoxDisableSplashScreen;
 	QCheckBox *checkBoxFullScreenStartup;
-
-
-	//* Controls
-	QCheckBox *checkBoxEnableAutoCoordination;
-	QComboBox *comboJoystick;
 
 
 	//* MpMap
@@ -47,8 +45,6 @@ public:
 	XGroupHBox *groupBoxFgFs;
 	XGroupHBox *groupBoxFgRoot;
 
-	//QRadioButton *radioFgUseDefault;
-	//QRadioButton *radioFgUseCustom;
 	QLabel *labelFgFsPath;
 	QLabel *labelFgRootPath;
 	QLabel *labelFgFsInfo;
@@ -56,30 +52,31 @@ public:
 
 	QLabel *labelTerraSyncInfo;
 	QLabel *labelTerraSyncDataPath;
-
-	//XGroupHBox *groupBoxTerraSync;
-	//QLineEdit *txtTerraSyncPath;
-
+	
+	//* Controls
+	QLabel *labelInputs;
 
 	//* Functions
 	void initialize();
-
-
-	void save_settings();
+	QString validate();
 
 
 signals:
+	void setx(QString option, bool enabled, QString value);
+
 
 public slots:
 
 	void on_callsign_changed(QString);
-	void on_checkbox_show_mp_map();
+
+	void on_screensize();
+	void on_checkbox_splash_screen();
+
+	void on_show_mp_map();
+
 	void load_joysticks();
-	bool check_js_demo_exists();
 
-	void on_radio_fg_path();
-
-	void load_settings();
+	void on_upx(QString option, bool enabled, QString value);
 };
 
 #endif // CORESETTINGSWIDGET_H

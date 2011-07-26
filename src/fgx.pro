@@ -19,8 +19,6 @@ HEADERS += xobjects/xsettings.h \
     airports/airportswidget.h \
     xwidgets/execontrols.h \
     panes/timeweatherwidget.h \
-    panes/advancedoptionswidget.h \
-    panes/outputpreviewwidget.h \
     panes/coresettingswidget.h \
     xwidgets/xgroupboxes.h \
     xobjects/mainobject.h \
@@ -60,7 +58,18 @@ HEADERS += xobjects/xsettings.h \
     props/propeditwidget.h \
     mpmap/mpmapwidget.h \
     mpmap/mpmapxwidget.h \
-    mpmap/pilotswidget.h
+    mpmap/pilotswidget.h \
+    mpmap/xwebpage.h \
+    panes/expertoptionswidget.h \
+    xobjects/xsettingsmodel.h \
+    xwidgets/fgxdebugwidget.h \
+    launcher/headerwidget.h \
+    xwidgets/xcommandpreviewidget.h \
+    xobjects/xopt.h \
+    xwidgets/xdebugtreewidget.h \
+    map/openlayerwidget.h \
+    aircraft/xaero.h \
+    airports/metarwidget.h
 SOURCES += main.cpp \
     xobjects/xsettings.cpp \
     settings/settingsdialog.cpp \
@@ -70,8 +79,6 @@ SOURCES += main.cpp \
     airports/airportswidget.cpp \
     xwidgets/execontrols.cpp \
     panes/timeweatherwidget.cpp \
-    panes/advancedoptionswidget.cpp \
-    panes/outputpreviewwidget.cpp \
     panes/coresettingswidget.cpp \
     xwidgets/xgroupboxes.cpp \
     xobjects/mainobject.cpp \
@@ -114,8 +121,20 @@ SOURCES += main.cpp \
     props/propeditwidget.cpp \
     mpmap/mpmapwidget.cpp \
     mpmap/mpmapxwidget.cpp \
-    mpmap/pilotswidget.cpp
-RESOURCES += resources/icons.qrc \
+    mpmap/pilotswidget.cpp \
+    mpmap/xwebpage.cpp \
+    panes/expertoptionswidget.cpp \
+    xobjects/xsettingsmodel.cpp \
+    xwidgets/fgxdebugwidget.cpp \
+    launcher/headerwidget.cpp \
+    xwidgets/xcommandpreviewidget.cpp \
+    xobjects/xopt.cpp \
+    xwidgets/xdebugtreewidget.cpp \
+    map/openlayerwidget.cpp \
+    aircraft/xaero.cpp \
+    airports/metarwidget.cpp
+RESOURCES += resources/ycons.qrc \
     resources/artwork.qrc \
-    resources/google_map.qrc
+    resources/fonts.qrc \
+    resources/openlayers.qrc
 CONFIG += console

@@ -9,7 +9,6 @@
 #include <QtGui/QHBoxLayout>
 
 #include "execontrols.h"
-//#include "panes/advancedoptionswidget.h"
 #include "launcher/launcherwindow.h"
 #include "utilities/utilities.h"
 
@@ -27,21 +26,27 @@ ExeControls::ExeControls(QString title, QWidget *parent) :
 
 
 	//** Buttons layout
-	QVBoxLayout *buttlay = new QVBoxLayout();
+	QHBoxLayout *buttlay = new QHBoxLayout();
 	layout->addLayout(buttlay);
 
 	//** Stop Button
-	buttonStop = new QPushButton();
-	buttonStop->setText(tr(" Stop "));
-	buttlay->addWidget(buttonStop);
+	buttonStop = new QToolButton();
+	buttonStop->setText("Stop");
+	buttonStop->setAutoRaise(true);
+	buttonStop->setIcon(QIcon(":/icon/stop"));
+	buttonStop->setStyleSheet("padding: 0px;");
+	buttonStop->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 	buttonStop->setEnabled(false);
-	buttonStop->setMinimumSize(QSize( 100, 20));
 	connect(buttonStop, SIGNAL(clicked()), this, SLOT(on_stop_clicked()));
+	buttlay->addWidget(buttonStop);
 
 	//** Start Button
-	buttonStart = new QPushButton();
-	buttonStart->setText(tr(" Start "));
-	buttonStart->setMinimumSize(QSize( 100, 20)); 
+	buttonStart = new QToolButton();
+	buttonStart->setText("Start");
+	buttonStart->setAutoRaise(true);
+	buttonStart->setIcon(QIcon(":/icon/start"));
+	buttonStart->setStyleSheet("padding: 0px;");
+	buttonStart->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 	buttlay->addWidget(buttonStart);
 	connect(buttonStart, SIGNAL(clicked()), this, SLOT(on_start_clicked()));
 	

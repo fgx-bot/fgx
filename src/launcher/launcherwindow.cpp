@@ -5,6 +5,7 @@
 #include <QtCore/QCoreApplication>
 #include <QtCore/QTimer>
 #include <QtCore/QProcess>
+#include <QtGui/QWhatsThis>
 
 
 #include <QtGui/QApplication>
@@ -30,11 +31,8 @@
 LauncherWindow::LauncherWindow(MainObject *mainOb, QWidget *parent)
 	: QWidget(parent)
 {
-
-
-	//#####= Set to true to show all exec controls
-	bool show_all_exe_controls = false;
-
+	
+	
 
 	initializing = true;
     mainObject = mainOb;
@@ -52,110 +50,18 @@ LauncherWindow::LauncherWindow(MainObject *mainOb, QWidget *parent)
 	//====================================================
 	QVBoxLayout *outerContainer = new QVBoxLayout();
 	outerContainer->setContentsMargins(0, 0, 0, 0);
-	outerContainer->setSpacing(0);
-	setLayout(outerContainer);
-
-
-
-	//====================================================
-	//== Setup Menus
-	//====================================================
-	QMenuBar *menuBar = new QMenuBar();
-	outerContainer->addWidget(menuBar);
-
-	//== File Menu
-	QMenu *menuFile = new QMenu(tr("File"));
-	menuBar->addMenu(menuFile);
-	QAction *actionQuit = menuFile->addAction(QIcon(":/icon/quit"), tr("Quit"), this, SLOT(on_quit()));
-	actionQuit->setIconVisibleInMenu(true);
-
-	//=== Style Menu
-	QMenu *menuStyle = new QMenu(tr("Style"));
-	menuBar->addMenu(menuStyle);	
-
-	actionGroupStyle = new QActionGroup(this);
-	actionGroupStyle->setExclusive(true);
-	connect(actionGroupStyle, SIGNAL(triggered(QAction*)), this, SLOT(on_action_style(QAction*)));
-	QStringList styles =  QStyleFactory::keys();
-
-	for(int idx=0; idx < styles.count(); idx++){
-		QString sty = QString(styles.at(idx));
-		QAction *act = menuStyle->addAction( sty );
-		actionGroupStyle->addAction( act );
-		act->setCheckable(true);
-		if(mainObject->settings->style_current() == sty){
-			act->setChecked(true);
-		}
-	}
-
-	//==== Help Menu
-	QMenu *menuHelp = new QMenu(tr("Help"));
-	menuBar->addMenu(menuHelp);
-
-	QActionGroup *actionGroupUrls = new QActionGroup(this);
-	connect(actionGroupUrls, SIGNAL(triggered(QAction*)), this, SLOT(on_action_open_url(QAction*)));
-
-	QAction *act = menuHelp->addAction(tr("Project Page"));
-	act->setProperty("url", "http://code.google.com/p/fgx");
-	actionGroupUrls->addAction(act);
-
-	act = menuHelp->addAction(tr("Bugs and Issues"));
-	act->setProperty("url", "http://code.google.com/p/fgx/issues/list");
-	actionGroupUrls->addAction(act);
-
-	act = menuHelp->addAction(tr("Source Code"));
-	act->setProperty("url", "https://gitorious.org/fgx/fgx/");
-	actionGroupUrls->addAction(act);
-
-	menuHelp->addSeparator();
-	menuHelp->addAction(tr("About FGx"), this, SLOT(on_about_fgx()));
-	menuHelp->addAction(tr("About Qt"), this, SLOT(on_about_qt()));
+	//outerContainer->setSpacing(0);
+	setLayout(outerContainer);	
 	
 	
-	//====================================================
-	//** Header Banner
-	//====================================================
-	QString header_style("padding: 10px 0px 0px 370px; vertical-align: top;	 background-image: url(':/images/fgx-logo'); background-repeat: no-repeat; background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #86A0D8, stop: 0.01 #849DD8, stop: 0.49 #CED7EA, stop: 0.5 #CED7EA, stop: 1 #eeeeee);");
-    headerLabel = new QLabel(this);
-	headerLabel->setFixedHeight(80);
-	headerLabel->setStyleSheet(header_style);
-	outerContainer->addWidget(headerLabel, 0);
-
-
-
-
-	//=== Top toolbar
-	QHBoxLayout *toolbarLayout =  new QHBoxLayout();
-	toolbarLayout->setContentsMargins(0, 0, 10, 0);
-	outerContainer->addLayout(toolbarLayout);
-	toolbarLayout->addStretch(100);
-
-	//= Show Log
-	QToolButton *buttonShowLogs = new QToolButton(this);
-	buttonShowLogs->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-	buttonShowLogs->setText("View Logs");
-	buttonShowLogs->setAutoRaise(true);
-	buttonShowLogs->setIcon(QIcon(":/icon/log"));
-	buttonShowLogs->setStyleSheet("padding: 0px;");
-	toolbarLayout->addWidget(buttonShowLogs);
-	connect(buttonShowLogs, SIGNAL(clicked()),
-			mainObject, SLOT(on_view_logs())
-	);
-
-	//== Shjow setup wizard
-	QToolButton *buttonShowWizard = new QToolButton();
-	buttonShowWizard->setText("Set Paths");
-	buttonShowWizard->setAutoRaise(true);
-	buttonShowWizard->setIcon(QIcon(":/icon/wizard"));
-	buttonShowWizard->setStyleSheet("padding: 0px;");
-	buttonShowWizard->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-	toolbarLayout->addWidget(buttonShowWizard);
-	connect(buttonShowWizard, SIGNAL(clicked()), mainObject, SLOT(show_setup_wizard()));
-
-
+	//== Message Label
+	
+	headerWidget = new HeaderWidget(mainObject);
+	outerContainer->addWidget(headerWidget,0);
+	
+	
 	QVBoxLayout *mainLayout = new QVBoxLayout();
 	mainLayout->setContentsMargins(10, 0, 10, 10);
-	mainLayout->setSpacing(0);
 	outerContainer->addLayout(mainLayout);
 
 
@@ -163,6 +69,7 @@ LauncherWindow::LauncherWindow(MainObject *mainOb, QWidget *parent)
 	//** Main TabWidget with Widgets
 	//====================================================
     tabWidget = new QTabWidget(this);
+	tabWidget->setObjectName("launcher_tabs");
 	mainLayout->addWidget(tabWidget);
 	connect(tabWidget, SIGNAL(currentChanged(int)), this, SLOT(on_tab_changed(int)));
 
@@ -172,20 +79,19 @@ LauncherWindow::LauncherWindow(MainObject *mainOb, QWidget *parent)
 	tabWidget->addTab(coreSettingsWidget, tr("Core Settings"));
 	//connect(coreSettingsWidget->groupBoxTerraSync, SIGNAL(clicked()), this, SLOT(on_group_box_terrasync_clicked()));
 
-	//* Time / Weather Widget
-	timeWeatherWidget = new TimeWeatherWidget(mainObject);
-	tabWidget->addTab(timeWeatherWidget, tr("Time and Weather"));
-
 
 	//* Aircraft Widget
 	aircraftWidget = new AircraftWidget(mainObject);
 	tabWidget->addTab(aircraftWidget, tr("Aircraft"));
 	//#connect(aircraftWidget, SIGNAL(set_arg(QString,QString,QString)), this, SLOT(set_arg(QString,QString,QString)));
 
-
-	//** Airports Tab
+	//** Position Tab
 	airportsWidget = new AirportsWidget(mainObject);
-	tabWidget->addTab(  airportsWidget, tr("Airports"));
+	tabWidget->addTab(  airportsWidget, tr("Position"));
+	
+	//* Time / Weather Widget
+	timeWeatherWidget = new TimeWeatherWidget(mainObject);
+	tabWidget->addTab(timeWeatherWidget, tr("Time and Weather"));
 
 
 	//* Network Tab
@@ -193,20 +99,14 @@ LauncherWindow::LauncherWindow(MainObject *mainOb, QWidget *parent)
 	tabWidget->addTab( networkWidget, tr("Network"));
 
 
-	//* Advanced Options
-	advancedOptionsWidget = new AdvancedOptionsWidget(mainObject);
-	tabWidget->addTab( advancedOptionsWidget, tr("Advanced Options"));
-
-
-
-	//* Output + Preview
-	outputPreviewWidget = new OutputPreviewWidget(mainObject);
-	tabWidget->addTab( outputPreviewWidget, tr("Launch Command"));
-	connect(outputPreviewWidget->buttonCommandPreview, SIGNAL(clicked()), this, SLOT(on_command_preview()));
+	//* Expert Options
+	expertOptionsWidget = new ExpertOptionsWidget(mainObject);
+	tabWidget->addTab( expertOptionsWidget, tr("Expert Options"));
+	//connect(outputPreviewWidget->buttonCommandPreview, SIGNAL(clicked()), this, SLOT(on_command_preview()));
 
 
 	mainLayout->addSpacing(10);
-
+	mainLayout->setAlignment( Qt::AlignTop );
 
 
 
@@ -216,27 +116,73 @@ LauncherWindow::LauncherWindow(MainObject *mainOb, QWidget *parent)
 	
 	//* Show bottom bar
 	QHBoxLayout *bottomActionLayout = new QHBoxLayout();
+	bottomActionLayout->setAlignment( Qt::AlignTop );
 	mainLayout->addLayout(bottomActionLayout);
 	
+	XGroupHBox *toolBox = new XGroupHBox(tr("Settings"));
+	bottomActionLayout->addWidget(toolBox);
 	
-	//* Settings: load/save
-	XGroupVBox *grpSettings = new XGroupVBox(tr("Settings"));
-	bottomActionLayout->addWidget(grpSettings);
+	toolBox->setStyleSheet("XGroupHBox::title { color: #000000; background-color: yellow }");
 	
-	buttonLoadSettings = new QPushButton();
-	buttonLoadSettings->setMinimumSize(QSize( 100, 30));
-	buttonLoadSettings->setText(tr(" Load "));
-	connect(buttonLoadSettings, SIGNAL(clicked()), this, SLOT(load_settings()));
-	grpSettings->addWidget(buttonLoadSettings);
+	//== Show setup wizard
+	QToolButton *buttonShowWizard = new QToolButton();
+	buttonShowWizard->setText("Set Paths");
+	buttonShowWizard->setAutoRaise(true);
+	buttonShowWizard->setIcon(QIcon(":/icon/path"));
+	buttonShowWizard->setStyleSheet("padding: 0px;");
+	buttonShowWizard->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+	toolBox->addWidget(buttonShowWizard);
+	connect(buttonShowWizard, SIGNAL(clicked()), mainObject, SLOT(show_setup_wizard()));
 	
-	bottomActionLayout->addStretch(10);
+	//= Load Settings
+	QToolButton *buttonLoadSettings = new QToolButton(this);
+	buttonLoadSettings->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+	buttonLoadSettings->setText("Load Profile");
+	buttonLoadSettings->setAutoRaise(true);
+	buttonLoadSettings->setIcon(QIcon(":/icon/load"));
+	buttonLoadSettings->setStyleSheet("padding: 0px;");
+	toolBox->addWidget(buttonLoadSettings);
+	connect(buttonLoadSettings, SIGNAL(clicked()),
+			this, SLOT(load_settings())
+			);
+	connect(buttonLoadSettings, SIGNAL(clicked()),
+			mainObject->X, SLOT(read_ini())
+	);
+
+	//= Save Settings
+	QToolButton *buttonSaveSettings = new QToolButton(this);
+	buttonSaveSettings->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+	buttonSaveSettings->setText("Save Profile");
+	buttonSaveSettings->setAutoRaise(true);
+	buttonSaveSettings->setIcon(QIcon(":/icon/save"));
+	buttonSaveSettings->setStyleSheet("padding: 0px;");
+	toolBox->addWidget(buttonSaveSettings);
+	connect(buttonSaveSettings, SIGNAL(clicked()),
+			this, SLOT(save_settings())
+			);
+	connect(buttonSaveSettings, SIGNAL(clicked()),
+			mainObject->X, SLOT(write_ini())
+	);
+
+	bottomActionLayout->addStretch(20);
 	
-	buttonSaveSettings = new QPushButton();
-	buttonSaveSettings->setMinimumSize(QSize( 100, 30));
-	buttonSaveSettings->setText(tr(" Save "));
-	connect(buttonSaveSettings, SIGNAL(clicked()), this, SLOT(save_settings()));
-	grpSettings->addWidget(buttonSaveSettings);
 	
+	//== Help Box
+	XGroupHBox *helpBox = new XGroupHBox(tr("Help"));
+	helpBox->setStyleSheet("XGroupHBox::title { color: #000000; background-color: #ffff00 }");
+	bottomActionLayout->addWidget(helpBox);
+	
+	//= Whats this button
+	buttonWhatsThis = new QToolButton();
+	buttonWhatsThis->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+	buttonWhatsThis->setText("Whats this");
+	buttonWhatsThis->setAutoRaise(true);
+	buttonWhatsThis->setIcon(QIcon(":/icon/help"));
+	buttonWhatsThis->setStyleSheet("padding: 0px;");
+	helpBox->addWidget(buttonWhatsThis);
+	connect(buttonWhatsThis, SIGNAL(clicked()), this, SLOT(on_whats_this()));
+	
+	bottomActionLayout->addStretch(100);
 
 	//=============================================================
 	//== Start Stop ==
@@ -252,7 +198,6 @@ LauncherWindow::LauncherWindow(MainObject *mainOb, QWidget *parent)
 
 	connect(mainObject->processFgCom, SIGNAL(running(bool)), exeFgCom, SLOT(set_running(bool)));
 	connect(exeFgCom, SIGNAL(stop()), mainObject->processFgCom, SLOT(stop()));
-	exeFgCom->setVisible(show_all_exe_controls);
 
 	//= TerraSync
 	exeTerraSync = new ExeControls("TerraSync");
@@ -263,7 +208,6 @@ LauncherWindow::LauncherWindow(MainObject *mainOb, QWidget *parent)
 
 	connect(mainObject->processTerraSync, SIGNAL(running(bool)), exeTerraSync, SLOT(set_running(bool)));
 	connect(exeTerraSync, SIGNAL(stop()), mainObject->processTerraSync, SLOT(stop()));
-	exeTerraSync->setVisible(show_all_exe_controls);
 
 	//= FlightGear
 	exeFgfs = new ExeControls("FgFs");
@@ -273,16 +217,18 @@ LauncherWindow::LauncherWindow(MainObject *mainOb, QWidget *parent)
 			);
 	connect(mainObject->processFgFs, SIGNAL(running(bool)), exeFgfs, SLOT(set_running(bool)));
 	connect(exeFgfs, SIGNAL(stop()), mainObject->processFgFs, SLOT(stop()));
-	exeFgfs->setVisible(show_all_exe_controls);
 
 	//= All
 	exeAll = new ExeControls("FlightGear");
+	exeAll->setStyleSheet("QGroupBox::title { color: #ffffff; background-color: #007eff }");
 	bottomActionLayout->addWidget(exeAll);
 	connect(	exeAll->buttonStart, SIGNAL(clicked()),
 			this, SLOT(on_start_all_clicked())
 			);
 	connect(mainObject->processFgFs, SIGNAL(running(bool)), exeAll, SLOT(set_running(bool)));
 	connect(exeAll, SIGNAL(stop()), mainObject, SLOT(stop_all()) );
+
+	on_debug_mode(); //= Show hide exe widgets
 
 	//====================================================================================
 	//* Problem:  Qt Has no "Show event" for a "widget", so we need to present Widgets first
@@ -293,6 +239,10 @@ LauncherWindow::LauncherWindow(MainObject *mainOb, QWidget *parent)
 
 	initializing = false;
 	QTimer::singleShot(300, this, SLOT(initialize()));
+
+	//headerWidget->setText("Callsign - KSFO - AIRPORT");
+	connect(mainObject->X, SIGNAL(upx(QString,bool,QString)), this, SLOT(on_upx(QString,bool,QString)));
+	connect(mainObject, SIGNAL(on_debug_mode(bool)), this, SLOT(on_debug_mode()));
 
 }
 
@@ -311,9 +261,10 @@ void LauncherWindow::initialize(){
 
 	//= First load the settings
 	load_settings();
+	mainObject->X->read_ini();
 
-	//= check paths are same
-	if(!mainObject->settings->paths_sane()){
+	//= check paths are sane
+	if(!mainObject->X->paths_sane()){
 		mainObject->show_setup_wizard();
 	}
 
@@ -339,9 +290,11 @@ void LauncherWindow::on_start_all_clicked() {
 
 //= Start FgFs
 void LauncherWindow::on_start_fgfs_clicked() {
+	qDebug() << "pre validate";
 	if(!validate()){
 		return;
 	}
+	qDebug() << "save";
 	save_settings();
 	mainObject->start_fgfs();
 }
@@ -369,16 +322,15 @@ void LauncherWindow::on_start_fgcom_clicked() {
 //================================================================================
 void LauncherWindow::save_settings()
 {
+	QString message("Settings saved.");
+	headerWidget->showMessage(message);
 
-	coreSettingsWidget->save_settings();
-	timeWeatherWidget->save_settings();
-	aircraftWidget->save_settings();
-	airportsWidget->save_settings();
-	networkWidget->save_settings();
-	advancedOptionsWidget->save_settings();
     mainObject->settings->saveWindow(this);
 	mainObject->settings->sync();
-	outLog("*** FGx reports: Settings saved ***");
+	outLog("FGx: LauncherWindow::save_settings() saved ***");
+	
+	
+	
 }
 
 //================================================================================
@@ -386,18 +338,13 @@ void LauncherWindow::save_settings()
 //================================================================================
 void LauncherWindow::load_settings()
 {
+	
 
-	coreSettingsWidget->load_settings();
-	timeWeatherWidget->load_settings();
-	aircraftWidget->load_settings();
-	airportsWidget->load_settings();
-	networkWidget->load_settings();
-	advancedOptionsWidget->load_settings();
-
-	exeTerraSync->setEnabled( mainObject->settings->terrasync_enabled() );
-
-	outLog("*** FGx reports: Settings loaded ***");
-
+	QString message("Settings loaded.");
+	headerWidget->showMessage(message);
+	
+	outLog("FGx: Settings loaded in LauncherWIndow::load_settings()");
+	
 
 }
 
@@ -411,7 +358,7 @@ void LauncherWindow::on_command_preview(){
 		return;
 	}
 	save_settings();
-	outputPreviewWidget->preview();
+	//outputPreviewWidget->preview();
 }
 
 
@@ -419,13 +366,20 @@ void LauncherWindow::on_command_preview(){
 //* Validate
 //=======================================================================================================================
 bool LauncherWindow::validate(){
-	//int TIMEOUT = 5000;
+
 	QString v;
+
+	v = coreSettingsWidget->validate();
+	if(v != ""){
+		tabWidget->setCurrentIndex( tabWidget->indexOf(coreSettingsWidget));
+		headerWidget->showMessage(v);
+		return false;
+	}
 
 	v = aircraftWidget->validate();
 	if(v != ""){
 		tabWidget->setCurrentIndex( tabWidget->indexOf(aircraftWidget));
-		messageBox->showWindowMessage("Validation failed:<BR> Please select an Aircraft or check [x] Use Default.");
+		headerWidget->showMessage(v);
 		return false;
 	}
 	outLog("*** FGx reports: Aircraft settings ok. ***");
@@ -433,7 +387,7 @@ bool LauncherWindow::validate(){
 	v = airportsWidget->validate();
 	if(v != ""){
 		tabWidget->setCurrentIndex( tabWidget->indexOf(airportsWidget));
-		messageBox->showWindowMessage("Validation failed:<BR> Please select an Airport.");
+		headerWidget->showMessage(v);
 		return false;
 	}
 	outLog("*** FGx reports: Airport settings ok. ***");
@@ -441,13 +395,13 @@ bool LauncherWindow::validate(){
 	v = networkWidget->validate();
 	if(v != ""){
 		tabWidget->setCurrentIndex( tabWidget->indexOf(networkWidget));
-		messageBox->showWindowMessage("Validation failed:<BR> Please check settings on Network Tab!");
+		headerWidget->showMessage(v);
 		return false;
 	}
 	v = timeWeatherWidget->validate();
 	if(v != ""){
 		tabWidget->setCurrentIndex( tabWidget->indexOf(timeWeatherWidget));
-		messageBox->showWindowMessage("Validation failed:<BR> Please check settings on Time Weather tab");
+		headerWidget->showMessage(v);
 		return false;
 	}
 	outLog("*** FGx reports: Network settings ok. ***");
@@ -456,22 +410,6 @@ bool LauncherWindow::validate(){
 	return true;
 }
 
-//=======================================================================================================================
-//* Help Menu Events
-//=======================================================================================================================
-void LauncherWindow::on_about_fgx(){
-	QString txt;
-	txt.append("<html><body><p>FGx FlightGear Launcher</b></p>");
-	txt.append("<p>&copy; 2011 Yves Sablonier, Pete Morgan, Geoff McLane</p>");
-	txt.append("<p><a href='http://www.gnu.org/licenses/gpl-2.0.txt'>GPLv2 and later</a></p>");
-	txt.append("<p><a href='http://wiki.flightgear.org'>FlightGear Wiki</a></p>");
-	txt.append("</body></html>");
-	QMessageBox::about(this, "About FGx", txt);
-}
-
-void LauncherWindow::on_about_qt(){
-	QMessageBox::aboutQt(this, "About Qt");
-}
 
 
 
@@ -502,11 +440,6 @@ void LauncherWindow::closeEvent(QCloseEvent *event){
 	event->accept();
 }
 
-//=== Style Selected
-void LauncherWindow::on_action_style(QAction *action){
-	mainObject->settings->setValue("gui_style", action->text());
-	QApplication::setStyle(QStyleFactory::create(action->text()));
-}
 
 //=== Tab Changes
 void LauncherWindow::on_tab_changed(int tab_idx){
@@ -515,17 +448,41 @@ void LauncherWindow::on_tab_changed(int tab_idx){
 	}
 
 
-	if(tab_idx == tabWidget->indexOf(outputPreviewWidget)){
-		on_command_preview();
+	if(tab_idx == tabWidget->indexOf(expertOptionsWidget)){
+		//on_command_preview();
 	}else{
 		//= we dont want to restore to output preview cos it validates and will throw popup
 		mainObject->settings->setValue("launcher_last_tab", tabWidget->currentIndex());
 	}
 }
 
-void LauncherWindow::on_action_open_url(QAction *action){
-	QUrl url(action->property("url").toString());
+void LauncherWindow::on_action_open_url(QAction *act){
+	QUrl url(act->property("url").toString());
 	QDesktopServices::openUrl(url);
 }
 
+void LauncherWindow::on_whats_this() {
+	QWhatsThis::enterWhatsThisMode();
+}
 
+void LauncherWindow::on_upx(QString option, bool enabled, QString value)
+{
+	Q_UNUSED(enabled);
+	Q_UNUSED(value);	
+	
+	if(option == "--callsign=" || option == "--airport=" || option == "--aircraft="){
+		QString header = QString("<font color=#ff0000>%1</font> with Aircraft <b>%2</b> at Airport <b>%3</b>").arg( mainObject->X->getx("--callsign=")
+									).arg( mainObject->X->getx("--aircraft=")
+									).arg( mainObject->X->getx("--airport="));
+		headerWidget->setText( header );
+	}
+}
+
+
+void LauncherWindow::on_debug_mode()
+{
+	exeFgfs->setVisible(mainObject->debug_mode == true);
+	exeFgCom->setVisible(mainObject->debug_mode == true);
+	exeTerraSync->setVisible(mainObject->debug_mode == true);
+	exeAll->setVisible(mainObject->debug_mode == false);
+}

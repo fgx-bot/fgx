@@ -8,7 +8,7 @@
 #include <QtNetwork/QNetworkDiskCache>
 #include <QtNetwork/QNetworkCookieJar>
 
-
+#include <QtGui/QSplitter>
 #include <QtGui/QStatusBar>
 #include <QtGui/QProgressBar>
 #include <QtGui/QLabel>
@@ -16,13 +16,21 @@
 #include <QtGui/QActionGroup>
 #include <QtGui/QToolButton>
 
+
+#include "map/openlayerwidget.h"
+class OpenLayerWidget;
+
 #include "mpmap/pilotswidget.h"
+class PilotsWidget;
 
 #include "xobjects/mainobject.h"
-#include "xobjects/latlng.h"
-
 class MainObject;
-class PilotsWidget;
+
+//#include "xobjects/latlng.h"
+
+#include "aircraft/xaero.h"
+
+
 
 
 class MpMapXWidget : public QWidget
@@ -33,51 +41,26 @@ public:
 
 	MainObject *mainObject;
 
-    QWebView *webView;
-	QNetworkDiskCache *networkDiskCache;
-	QNetworkCookieJar *networkCookieJar;
-
+	OpenLayerWidget *mapWidget;
 	PilotsWidget *pilotsWidget;
 
-	QProgressBar *progressBar;
-    QStatusBar *statusBar;
-    QLabel *lblLat;
-	QLabel *lblLng;
-    QLabel *lblZoom;
-	QButtonGroup *groupZoom;
-    QToolButton *buttZoom;
+	QSplitter *splitter;
 
-    QString to_lat(QVariant);
-
-    void execute_js(QString js_string);
-    void zoom_to(QString lat, QString lng, QString zoom);
-
-    void add_marker(LatLng latlng, QString label);
-
-    void add_runway(float lat1, float lng1, float lat2, float lng2, QString label);
-    void add_runway(QString lat1, QString lng1, QString lat2, QString lng2, QString label);
-    void add_runway(LatLng p1, LatLng p2, QString label);
-
-
+	void closeEvent(QCloseEvent *event);
 signals:
 
 public slots:
 
-     void on_zoom_action(QAction *);
+	void initialize();
 
-      //** Map Events
-      void map_mouse_move(QVariant lat, QVariant lng);
-      void map_right_click(QVariant lat, QVariant lng);
-      void map_zoom_changed(QVariant zoom);
-      void map_error(QVariant err);
+	void add_airport(QString airport);
+	void add_runway(QString airport, QString rwy1, QString rwy2, QString lat1, QString lng1, QString lat2, QString lng2);
+	void show_airport(QString airport);
 
-      void marker_clicked(QVariant marker, QVariant mId);
-      void marker_unselected(QVariant curr_idx, QVariant mLocationId);
+	void focus_aero(XAero aero);
 
-	  void start_progress();
-	  void update_progress(int progress);
-	  void end_progress(bool Ok);
-
+	//void on_freeze_map(bool freeze);
+	void on_splitter_moved();
 };
 
 #endif // MPMAPXWIDGET_H

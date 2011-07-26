@@ -5,6 +5,7 @@
 #include <QtGui/QFileDialog>
 
 #include "setupwizard/fgrootpage.h"
+#include "xobjects/xopt.h"
 
 FgRootPage::FgRootPage(MainObject *mob, QWidget *parent) :
     QWizardPage(parent)
@@ -61,6 +62,7 @@ FgRootPage::FgRootPage(MainObject *mob, QWidget *parent) :
 
 
 	registerField("fgroot_use_default", radioDefault);
+	registerField("fgroot_use_custom", radioCustom);
 	registerField("fgroot_custom_path", txtFgRoot);
 
 }
@@ -79,16 +81,18 @@ void FgRootPage::on_select_path()
 //= initializePage
 void FgRootPage::initializePage()
 {
-	radioDefault->setChecked( mainObject->settings->fgroot_use_default() );
-	lblDefault->setText( mainObject->settings->fgroot_default_path() );
-	txtFgRoot->setText( mainObject->settings->value("fgroot_custom_path").toString() );
+	XOpt opt = mainObject->X->get_opt("fgroot_custom_path");
+	radioDefault->setChecked( opt.enabled == false );
+	radioCustom->setChecked( opt.enabled  == true );
+	lblDefault->setText( mainObject->X->fgroot_default_path() );
+	txtFgRoot->setText( opt.value );
 }
 
 
 void FgRootPage::check_paths()
 {
 	//= Check the default path
-	QString default_path = mainObject->settings->fgroot_default_path();
+	QString default_path = mainObject->X->fgroot_default_path();
 	bool default_exists = QFile::exists(default_path);
 	QString lbl_default(default_path);
 	lbl_default.append( default_exists ? " - Ok" : " - Not Found" );

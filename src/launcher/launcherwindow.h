@@ -3,38 +3,41 @@
 
 #include <QtGui/QWidget>
 
-#include <QtGui/QTabWidget>
 #include <QtGui/QAction>
 #include <QtGui/QActionGroup>
 #include <QtGui/QPushButton>
 
-#include "panes/coresettingswidget.h"
-#include "panes/timeweatherwidget.h"
-#include "aircraft/aircraftwidget.h"
-#include "airports/airportswidget.h"
-#include "network/networkwidget.h"
-#include "panes/advancedoptionswidget.h"
-#include "panes/outputpreviewwidget.h"
 
+#include "panes/coresettingswidget.h"
+class CoreSettingsWidget;
+
+#include "panes/timeweatherwidget.h"
+class TimeWeatherWidget;
+
+#include "aircraft/aircraftwidget.h"
+class AircraftWidget;
+
+#include "airports/airportswidget.h"
+class AirportsWidget;
+
+#include "network/networkwidget.h"
+class NetworkWidget;
+
+#include "panes/expertoptionswidget.h"
+class ExpertOptionsWidget;
 
 #include "xwidgets/execontrols.h"
+class ExeControls;
+
+#include "launcher/headerwidget.h"
+class HeaderWidget;
+
 #include "utilities/statusbar.h"
+
 #include "utilities/messagebox.h"
 
 #include "xobjects/mainobject.h"
-
-
-
-//= Foward Declaratins
-class MainObject;
-class NetworkWidget;
-class CoreSettingsWidget;
-class TimeWeatherWidget;
-class AircraftWidget;
-class AirportsWidget;
-class NetworkWidget;
-class AdvancedOptionsWidget;
-class OutputPreviewWidget;
+#include "xwidgets/xgroupboxes.h"
 
 
 
@@ -46,13 +49,19 @@ class LauncherWindow : public QWidget
 public:
 
     LauncherWindow(MainObject *mainOb, QWidget *parent = 0);
+	
     ~LauncherWindow();
 
     MainObject *mainObject;
 	bool initializing;
 
+	HeaderWidget *headerWidget;
+	
+	XGroupHBox *toolBox;
+	
+	QToolButton *buttonWhatsThis;
+
 	QActionGroup *actionGroupStyle;
-    QLabel *headerLabel;
     QTabWidget *tabWidget;
 
 	CoreSettingsWidget *coreSettingsWidget;
@@ -60,8 +69,7 @@ public:
 	AircraftWidget *aircraftWidget;
 	AirportsWidget *airportsWidget;
 	NetworkWidget *networkWidget;
-	AdvancedOptionsWidget *advancedOptionsWidget;
-	OutputPreviewWidget *outputPreviewWidget;
+	ExpertOptionsWidget *expertOptionsWidget;
 
 	QPushButton *buttonLoadSettings;
 	QPushButton *buttonSaveSettings;
@@ -76,6 +84,8 @@ public:
 
     void closeEvent(QCloseEvent *event);
 
+
+
 public slots:
 
 
@@ -87,11 +97,10 @@ public slots:
 
 
 	//* Actions
-	void on_about_fgx();
-	void on_about_qt();
 	void on_quit();
-	void on_action_style(QAction *act);
+	//void on_action_style(QAction *act);
 	void on_action_open_url(QAction *act);
+	void on_whats_this();
 
 	//* Functions
 	void load_settings();
@@ -107,7 +116,9 @@ public slots:
 	//* Widget Events
 	void on_tab_changed(int);
 
+	void on_upx(QString option, bool enabled, QString value);
 
+	void on_debug_mode();
 };
 
 #endif // LAUNCHERWINDOW_H

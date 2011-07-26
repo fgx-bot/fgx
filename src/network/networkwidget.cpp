@@ -30,6 +30,7 @@
 
 #include "network/networkwidget.h"
 #include "network/mptelnet.h"
+#include "utilities/helpers.h"
 
 
 
@@ -54,93 +55,91 @@ NetworkWidget::NetworkWidget(MainObject *mOb, QWidget *parent) :
 	int mm = 10;
 	middleLayout->setContentsMargins(mm,mm,mm,mm);
 
-	//========================================================================
-	// Mp Servers Box
-	grpMpServer  = new QGroupBox("Enable Multiplayer");
-	middleLayout->addWidget(grpMpServer, 3);
-	grpMpServer->setCheckable(true);
-	grpMpServer->setChecked(false);
-
-	QVBoxLayout *layoutMpServer = new QVBoxLayout();
-	grpMpServer->setLayout(layoutMpServer);
+	//====================================================
+	//== Mp IN
+	QVBoxLayout *leftLayout = new QVBoxLayout();
+	middleLayout->addLayout(leftLayout, 1);
 
 
-	//**  Grid =========================================
-	QGridLayout *gridMP = new QGridLayout();
-	layoutMpServer->addLayout(gridMP);
+	grpMpServerIn = new XGroupHBox("MultiPlayer In");
+	grpMpServerIn->setCheckable(true);
+	leftLayout->addWidget(grpMpServerIn);
+	connect(grpMpServerIn, SIGNAL(toggled(bool)), this, SLOT(set_mp_server()));
 
-	int row = 0;
-
-	//** Mop IN
-	row++;
-	checkBoxIn = new QCheckBox("In to");
-	gridMP->addWidget(checkBoxIn, row, 0);
-	connect(checkBoxIn, SIGNAL(clicked()), this, SLOT(on_checkbox_in()));
 
 	comboLocalIpAddress = new QComboBox();
-	gridMP->addWidget(comboLocalIpAddress, row, 1);
+	grpMpServerIn->addWidget(comboLocalIpAddress);
 	connect(comboLocalIpAddress, SIGNAL(currentIndexChanged(int)), this, SLOT(set_mp_server()));
 
-	gridMP->addWidget(new QLabel("port"), row, 2);
+	grpMpServerIn->addWidget(new QLabel("port"));
 
 	comboLocalPort = new QComboBox();
-	comboLocalPort->addItem("5000");
-	comboLocalPort->addItem("5001");
+	comboLocalPort->addItem("5000", "5000");
+	comboLocalPort->addItem("5001", "5001");
 	comboLocalPort->setEditable(true);
 	comboLocalPort->setValidator( new QIntValidator(1000, 30000, this) );
-	gridMP->addWidget(comboLocalPort, row, 3);
+	grpMpServerIn->addWidget(comboLocalPort);
 	connect(comboLocalPort, SIGNAL(currentIndexChanged(int)), this, SLOT(set_mp_server()));
 
-	gridMP->addWidget(new QLabel("at"), row, 4);
+	grpMpServerIn->addWidget(new QLabel("at"));
 	comboHzIn = new QComboBox();
-	gridMP->addWidget(comboHzIn, row, 5);
+	grpMpServerIn->addWidget(comboHzIn);
 	populate_combo_hz(comboHzIn);
 	connect(comboHzIn, SIGNAL(currentIndexChanged(int)), this, SLOT(set_mp_server()));
-	gridMP->addWidget(new QLabel("Hz"), row, 6);
+	grpMpServerIn->addWidget(new QLabel("Hz"));
+
+	grpMpServerIn->xLayout->addStretch(20);
 
 
-	//** Mp Out
-	row++;
-	checkBoxOut = new QCheckBox("Out to");
-	gridMP->addWidget(checkBoxOut, row, 0);
-	connect(checkBoxOut, SIGNAL(clicked()), this, SLOT(on_checkbox_out()));
+	//===============================================
+	//== Mp Out
+	grpMpServerOut = new XGroupVBox("MultiPlayer Out");
+	grpMpServerOut->setCheckable(true);
+	leftLayout->addWidget(grpMpServerOut);
+	connect(grpMpServerOut, SIGNAL(toggled(bool)), this, SLOT(set_mp_server()));
+
+	QHBoxLayout *layMpOutControl = new QHBoxLayout();
+	grpMpServerOut->addLayout(layMpOutControl);
 
 	comboRemoteAddress = new QComboBox();
 	comboRemoteAddress->addItem(tr("Use domain"), "domain");
 	comboRemoteAddress->addItem(tr("Use IP"), "ip");
 	comboRemoteAddress->setCurrentIndex(0);
-	gridMP->addWidget(comboRemoteAddress, row, 1);
+	layMpOutControl->addWidget(comboRemoteAddress);
 	connect(comboRemoteAddress, SIGNAL(currentIndexChanged(int)), this, SLOT(set_mp_server()));
 
-	gridMP->addWidget(new QLabel("port"), row, 2);
+	layMpOutControl->addWidget(new QLabel("port"));
 
 	comboRemotePort = new QComboBox();
-	comboRemotePort->addItem("5000");
-	comboRemotePort->addItem("5001");
+	comboRemotePort->addItem("5000", "5000");
+	comboRemotePort->addItem("5001", "5001");
 	comboRemotePort->setEditable(true);
 	comboRemotePort->setValidator( new QIntValidator(1000, 30000, this) );
-	gridMP->addWidget(comboRemotePort, row, 3);
+	layMpOutControl->addWidget(comboRemotePort);
 	connect(comboRemotePort, SIGNAL(currentIndexChanged(int)), this, SLOT(set_mp_server()));
 
-	gridMP->addWidget(new QLabel("at"), row, 4);
+	layMpOutControl->addWidget(new QLabel("at"));
 	comboHzOut = new QComboBox();
-	gridMP->addWidget(comboHzOut, row, 5);
+	layMpOutControl->addWidget(comboHzOut);
 	populate_combo_hz(comboHzOut);
 	connect(comboHzOut, SIGNAL(currentIndexChanged(int)), this, SLOT(set_mp_server()));
-	gridMP->addWidget(new QLabel("Hz"), row, 6);
 
+	layMpOutControl->addWidget(new QLabel("Hz"));
 
-	gridMP->setColumnStretch(6,5);
+	layMpOutControl->addStretch(20);
 
+	QVBoxLayout *mpTreeLayout = new QVBoxLayout();
+	grpMpServerOut->addLayout(mpTreeLayout);
 
 	//=======================================
 	//* TreeWidget
     treeWidget = new QTreeWidget();
-	layoutMpServer->addWidget(treeWidget, 100);
+	mpTreeLayout->addWidget(treeWidget, 100);
     treeWidget->setAlternatingRowColors(true);
     treeWidget->setRootIsDecorated(false);
 	treeWidget->setSortingEnabled(true);
 	treeWidget->sortByColumn(C_SERVER_NAME, Qt::AscendingOrder);
+	//treeWidget->setMinimumWidth();
 
     QTreeWidgetItem * headerItem = treeWidget->headerItem();
     headerItem->setText(C_SERVER_NAME, tr("Name"));
@@ -161,142 +160,132 @@ NetworkWidget::NetworkWidget(MainObject *mOb, QWidget *parent) :
 
 	//************* Bottom Layout
 	QHBoxLayout *layoutBottomTreeBar = new QHBoxLayout();
-	layoutMpServer->addLayout(layoutBottomTreeBar);
+	mpTreeLayout->addLayout(layoutBottomTreeBar);
 	layoutBottomTreeBar->addStretch(30);
 
 	//* refresh MP servers
 	QToolButton *refreshButton = new QToolButton(this);
 	layoutBottomTreeBar->addWidget(refreshButton);
-	refreshButton->setIcon(QIcon(":/icon/refresh"));
-	refreshButton->setToolButtonStyle(Qt::ToolButtonIconOnly);
+	refreshButton->setText("Refresh Server List");
+	refreshButton->setAutoRaise(true);
+	refreshButton->setIcon(QIcon(":/icon/load"));
+	refreshButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 	connect(refreshButton, SIGNAL(clicked()), this, SLOT(dns_lookup()) );
 
 
 
-	//****************** RIGHT ********************************
+	//=================================================================================================
+	// RIGHT side >>>>
+	//=================================================================================================
 	QVBoxLayout *rightLayout = new QVBoxLayout();
 	rightLayout->setSpacing(20);
-	middleLayout->addLayout(rightLayout, 2);
+	middleLayout->addLayout(rightLayout, 1);
 
 	//========================================================================
 	// FgCom Box
-	grpFgCom = new QGroupBox(tr("FGCom - Voice Communications"));
+	grpFgCom = new XGroupGBox(tr("FGCom - Voice Communications"));
 	rightLayout->addWidget(grpFgCom, 2);
 	grpFgCom->setCheckable(true);
 	grpFgCom->setChecked(false);
 	connect(grpFgCom, SIGNAL(clicked(bool)), this, SLOT(set_fgcom()));
 
-	QGridLayout *layoutFgCom = new QGridLayout();
-	grpFgCom->setLayout(layoutFgCom);
-
 	QString style("font-size: 8pt; color: #666666;");
 
 	// fgCom NO
-	row = 0;
-	layoutFgCom->addWidget(new QLabel("Server"), row, 0, 1, 1, Qt::AlignRight);
+	int row = 0;
+	grpFgCom->addWidget(new QLabel("Server"), row, 0, 1, 1, Qt::AlignRight);
 	txtFgComNo = new QLineEdit();
-	layoutFgCom->addWidget(txtFgComNo, row, 1);
+	grpFgCom->addWidget(txtFgComNo, row, 1, 1, 1);
 	connect(txtFgComNo, SIGNAL(textChanged(QString)), this, SLOT(set_fgcom()));
 
 	row++;
 	QLabel *lblHelp1 = new QLabel("eg: fgcom.flightgear.org.uk");
 	lblHelp1->setStyleSheet(style);
-	layoutFgCom->addWidget(lblHelp1, row, 1, 1, 2);
+	grpFgCom->addWidget(lblHelp1, row, 1, 1, 2);
 
 	//* fgCom Port
 	row++;
-	layoutFgCom->addWidget(new QLabel("Port"), row, 0, 1, 1, Qt::AlignRight);
+	grpFgCom->addWidget(new QLabel("Port"), row, 0, 1, 1, Qt::AlignRight);
 	txtFgComPort = new QLineEdit();
 	txtFgComPort->setMaximumWidth(100);
-	layoutFgCom->addWidget(txtFgComPort);
+	grpFgCom->addWidget(txtFgComPort, row, 1, 1, 1);
 	connect(txtFgComPort, SIGNAL(textChanged(QString)), this, SLOT(set_fgcom()));
 
 	row++;
 	QLabel *lblHelp2 = new QLabel("eg: 16661");
 	lblHelp2->setStyleSheet(style);
-	layoutFgCom->addWidget(lblHelp2, row, 1, 1, 2);
+	grpFgCom->addWidget(lblHelp2, row, 1, 1, 2);
 
-	row++;
-	QHBoxLayout *hboxfgCom = new QHBoxLayout();
-	layoutFgCom->addLayout(hboxfgCom, row,0,1,2);
-	hboxfgCom->addStretch(20);
 
 
 	//===========================================================
 	//** Telnet
-	grpTelnet = new QGroupBox();
-	grpTelnet->setTitle(tr("Telnet Properties Server"));
+	grpTelnet = new XGroupHBox(tr("Telnet Properties Server"));
 	grpTelnet->setCheckable(true);
 	grpTelnet->setChecked(false);
 	rightLayout->addWidget(grpTelnet);
+	connect(grpTelnet, SIGNAL(clicked()), this, SLOT(on_telnet()));
 
-	QHBoxLayout *layoutNetTelnet = new QHBoxLayout();
-	grpTelnet->setLayout(layoutNetTelnet);
-	layoutNetTelnet->setSpacing(10);
-	//int m = 5;
-	layoutNetTelnet->setContentsMargins(m,m,m,m);
+	grpTelnet->xLayout->setSpacing(10);
+	grpTelnet->xLayout->setContentsMargins(m,m,m,m);
 
 	QLabel *lblTelnet = new QLabel();
 	lblTelnet->setText(tr("Set Port No:"));
-	layoutNetTelnet->addWidget( lblTelnet);
+	grpTelnet->addWidget( lblTelnet);
 
 	txtTelnet = new QLineEdit("5500");
 	txtTelnet->setValidator(new QIntValidator(80, 32000, this));
-	layoutNetTelnet->addWidget(txtTelnet);
+	grpTelnet->addWidget(txtTelnet);
+	connect(txtTelnet, SIGNAL(textChanged(QString)), this, SLOT(on_telnet()));
 
 	QToolButton *buttTelnet = new QToolButton();
-	layoutNetTelnet->addWidget(buttTelnet);
+	grpTelnet->addWidget(buttTelnet);
 	buttTelnet->setIcon(QIcon(":/icon/terminal"));
 	buttTelnet->setToolButtonStyle(Qt::ToolButtonIconOnly);
 	connect(buttTelnet, SIGNAL(clicked()), this, SLOT(on_open_telnet()));
-	buttTelnet->setDisabled(true);
+	buttTelnet->hide();
 
 	//===========================================================
 	//** Screenshot
-	grpScreenShot = new QGroupBox();
-	grpScreenShot->setTitle(tr("Screen Shot Server"));
+	grpScreenShot = new XGroupHBox(tr("Screen Shot Server"));
 	grpScreenShot->setCheckable(true);
 	grpScreenShot->setChecked(false);
 	rightLayout->addWidget(grpScreenShot);
+	connect(grpScreenShot, SIGNAL(clicked()), this, SLOT(on_screenshot()) );
 
-	QHBoxLayout *layoutScreenShot = new QHBoxLayout();
-	grpScreenShot->setLayout(layoutScreenShot);
-	layoutScreenShot->setSpacing(10);
-	//int m = 5;
-	layoutScreenShot->setContentsMargins(m,m,m,m);
-
-	layoutScreenShot->addWidget( new QLabel(tr("Port No:")));
+	grpScreenShot->xLayout->setSpacing(10);
+	grpScreenShot->xLayout->setContentsMargins(m,m,m,m);
+	grpScreenShot->addWidget( new QLabel(tr("Port No:")));
 
 	txtScreenShot = new QLineEdit("8088");
 	txtScreenShot->setValidator(new QIntValidator(80, 32000, this));
-	layoutScreenShot->addWidget(txtScreenShot);
+	grpScreenShot->addWidget(txtScreenShot);
+	connect(txtScreenShot, SIGNAL(textChanged(QString)), this, SLOT(on_screenshot()));
 
 	QToolButton *buttScreenshot = new QToolButton();
-	layoutScreenShot->addWidget(buttScreenshot);
+	grpScreenShot->addWidget(buttScreenshot);
 	buttScreenshot->setIcon(QIcon(":/icon/browse"));
 	buttScreenshot->setToolButtonStyle(Qt::ToolButtonIconOnly);
 	connect(buttScreenshot, SIGNAL(clicked()), this, SLOT(on_browse_screenshot()));
 
 	//==========================================================
 	//** HTTP
-	grpHttp = new QGroupBox();
-	grpHttp->setTitle(tr("HTTP Web Server"));
+	grpHttp = new XGroupHBox(tr("HTTP Web Server"));
 	grpHttp->setCheckable(true);
 	grpHttp->setChecked(false);
 	rightLayout->addWidget(grpHttp);
+	connect(grpHttp, SIGNAL(clicked()), this, SLOT(on_http()));
 
-	QHBoxLayout *layoutNetHttp = new QHBoxLayout();
-	grpHttp->setLayout(layoutNetHttp);
-	layoutNetHttp->setSpacing(10);
 
-	layoutNetHttp->addWidget( new QLabel(tr("Port No:")) );
+	grpHttp->addWidget( new QLabel(tr("Port No:")) );
 
 	txtHttp = new QLineEdit("8080");
 	txtHttp->setValidator(new QIntValidator(80, 32000, this));
-	layoutNetHttp->addWidget(txtHttp);
+	grpHttp->addWidget(txtHttp);
+	connect(txtHttp, SIGNAL(textChanged(QString)), this, SLOT(on_http()));
 
 	QToolButton *butHttp = new QToolButton();
-	layoutNetHttp->addWidget(butHttp);
+	grpHttp->addWidget(butHttp);
 	butHttp->setIcon(QIcon(":/icon/browse"));
 	butHttp->setToolButtonStyle(Qt::ToolButtonIconOnly);
 	connect(butHttp, SIGNAL(clicked()), this, SLOT(on_browse_http()));
@@ -308,8 +297,11 @@ NetworkWidget::NetworkWidget(MainObject *mOb, QWidget *parent) :
 	//** Setup network stuff
 	dns_lookup();
 	load_local_addresses();
-	on_checkbox_in();
-	on_checkbox_out();
+	//set_mp_server();
+
+	//== Connect Settings
+	connect(this, SIGNAL(setx(QString,bool,QString)), mainObject->X, SLOT(set_option(QString,bool,QString)) );
+	connect(mainObject->X, SIGNAL(upx(QString,bool,QString)), this, SLOT(on_upx(QString,bool,QString)));
 
 
 }
@@ -322,7 +314,7 @@ void NetworkWidget::load_local_addresses(){
 	QList<QHostAddress> addresses = QNetworkInterface::allAddresses();
 	for (int i = 0; i < addresses.size(); ++i) {
 		if(addresses.at(i).protocol() == QAbstractSocket::IPv4Protocol){
-			comboLocalIpAddress->addItem( addresses.at(i).toString() );
+			comboLocalIpAddress->addItem( addresses.at(i).toString(), addresses.at(i).toString() );
 		}
 	}
 }
@@ -352,10 +344,15 @@ void NetworkWidget::on_dns_lookup_callback(const QHostInfo &hostInfo){
 	newItem->setText(C_IP_ADDRESS, hostInfo.addresses().first().toString());
 	newItem->setText(C_PILOTS_COUNT, "-");
 	treeWidget->addTopLevelItem(newItem);
-	if(mainObject->settings->value("mpserver").toString() == hostInfo.hostName()){
-		treeWidget->setCurrentItem(newItem);
+	QString serv = mainObject->X->getx("--multiplay=out");
+	if(serv.indexOf(",") > 0){
+		if(serv.split(",",QString::SkipEmptyParts).at(1) == hostInfo.hostName()){
+			treeWidget->setCurrentItem(newItem);
+		}
 	}
-	return; //######################
+	return;
+
+	// TODO Connect to telnet and get players list
 	MpTelnet *telnet = new MpTelnet(this );
 	telnet->get_info(hostInfo.addresses().first().toString());
 	connect(telnet, SIGNAL(telnet_data(QString, QString)),
@@ -413,80 +410,60 @@ void NetworkWidget::on_telnet_data(QString ip_address, QString telnet_reply){
 
 
 //=====================================
-// Callsign Changed
-void NetworkWidget::on_callsign_changed(QString txt){
-	mainObject->actionCallsign->setText(txt.trimmed());
-}
-
-//=====================================
 // Mp Server Selected
 void NetworkWidget::set_mp_server(){
+	QString in(",");
+	in.append(comboHzIn->currentText());
+	in.append(",");
+	in.append(comboLocalIpAddress->currentText());
+	in.append(",").append(comboLocalPort->currentText());
 
+	emit setx("--multiplay=in", grpMpServerIn->isChecked(), in);
+
+
+	//if(!treeWidget->currentIndex()){
+		//treeWidget->setCu
+	//}
 	QTreeWidgetItem *item = treeWidget->currentItem();
-
-	if(!item or item->text(C_FLAG).length() == 0){
+	//bool mp_out_valid = !item; //or item->text(C_FLAG).length() == 0;
+	if(!item){ // or item->text(C_FLAG).length() == 0){
+		//emit setx("--multiplay=in", grpMpServerIn->isChecked(), in);
 		return;
 	}
 
 	QString out(",");
 	out.append(comboHzOut->currentText());
 	out.append(",");
-	out.append( comboRemoteAddress->itemData(comboRemoteAddress->currentIndex(),Qt::UserRole) == "domain"
-				? item->text(C_DOMAIN)
-				: item->text(C_IP_ADDRESS));
-	out.append(",").append("5000");
+	out.append(  item->text(C_IP_ADDRESS) );
+	out.append(",").append(comboRemotePort->currentText());
 
-	QString in(",");
-	in.append(comboHzIn->currentText());
-	in.append(",");
-	in.append(comboLocalIpAddress->currentText());
-	in.append(",").append("5000");
+	//=out,10,server.ip.address,5000
+	emit setx("--multiplay=out", grpMpServerOut->isChecked(), out);
+
+
 }
 
 
 //=====================================
 // Setup fgCom
 void NetworkWidget::set_fgcom(){
-	if(grpFgCom->isChecked()){
-		if(txtFgComNo->text().trimmed().length() == 0){
-			txtFgComNo->setText(mainObject->settings->default_fgcom_no());
-		}
-		if(txtFgComPort->text().trimmed().length() == 0){
-			txtFgComPort->setText(mainObject->settings->default_fgcom_port());
-		}
-		emit set_arg("set", "--fgcom=", txtFgComNo->text().append(":").append( txtFgComPort->text() ) );
-	}else{
-		emit set_arg("remove", "--fgcom=","");
-	}
+	//emit setx( "--fgcom=", grpFgCom->isChecked(), txtFgComNo->text().append(":").append( txtFgComPort->text() ) );
+	emit setx( "fgcom_generic_socket",
+				grpFgCom->isChecked(),
+				QString("--generic=socket,out,10,localhost,%1,udp,fgcom").arg(txtFgComPort->text())
+			);
 }
 		
 		
 //=====================================
 // Setup Combo Hz
 void NetworkWidget::populate_combo_hz(QComboBox *combo){
-	for(int i=5; i < 31; i++){
-		combo->addItem(QString("%1").arg(i));
+	for(int i=5; i < 15; i++){
+		combo->addItem(QString("%1").arg(i), QString("%1").arg(i));
 	}
 	combo->setCurrentIndex(4);
 }
 
-
-//=================================================
-// MP IN / Out Events
-void NetworkWidget::on_checkbox_in( ){
-	bool state = checkBoxIn->isChecked();
-	comboLocalIpAddress->setEnabled(state);
-	comboLocalPort->setEnabled(state);
-	comboHzIn->setEnabled(state);
-}
-void NetworkWidget::on_checkbox_out(){
-	bool state = checkBoxOut->isChecked();
-	comboRemoteAddress->setEnabled(state);
-	comboRemotePort->setEnabled(state);
-	comboHzOut->setEnabled(state);
-	treeWidget->setEnabled(state);
-
-}
 
 //=================================================
 // Open Browsers
@@ -506,167 +483,93 @@ void NetworkWidget::on_open_telnet(){
 	// TODO
 }
 
-//=============================================================
-// Get Args
-QStringList NetworkWidget::get_args(){
-
-	validate();
-	QStringList args;
-
-	
-	//* Enable Multiplay
-	if(grpMpServer->isChecked()){
-		
-		/*if (mainObject->settings->value("use_terrasync") == false) {
-			args << QString("--atlas=socket,out,5,localhost,5505,udp");
-		}*/
-		
-
-		
-		if(checkBoxIn->isChecked()){
-			args << QString("--multiplay=in,%1,%2,%3").arg(
-									comboHzIn->currentText()).arg(
-									comboLocalIpAddress->currentText()).arg(
-									comboLocalPort->currentText()
-							);
-		}
-		if(checkBoxOut->isChecked()){
-			if(treeWidget->currentItem()){
-				QString remote_server(	comboRemoteAddress->itemData(comboRemoteAddress->currentIndex(), Qt::UserRole).toString() == "domain"
-								? treeWidget->currentItem()->text(C_DOMAIN)
-								: treeWidget->currentItem()->text(C_IP_ADDRESS));
-				args << QString("--multiplay=out,%1,%2,%3").arg(
-								comboHzOut->currentText()).arg(
-								remote_server).arg(
-								comboRemotePort->currentText());
-			}
-		}
-		
-	}
-
-	//* FgCom
-	if(grpFgCom->isChecked()){
-		args << QString("--generic=socket,out,10,localhost,%1,udp,fgcom").arg( txtFgComPort->text() );
-	}
-
-	//* Http
-	if(grpHttp->isChecked()){
-		args << QString("--http=%1").arg( txtHttp->text() );
-	}
-
-	//* Telnet
-	if(grpTelnet->isChecked()){
-		args << QString("--telnet=%1").arg( txtTelnet->text() );
-	}
-
-	//* ScreenShot
-	if(grpScreenShot->isChecked()){
-		args << QString("--jpg-httpd=%1").arg( txtScreenShot->text() );
-	}
-
-	
-	return args;
-}
-
-//=============================================================
-// Save Settings
-void NetworkWidget::save_settings(){
-
-	mainObject->settings->setValue("enable_mp", grpMpServer->isChecked());
-
-	mainObject->settings->setValue("in", checkBoxIn->isChecked());
-	mainObject->settings->setValue("out", checkBoxOut->isChecked());
-
-	mainObject->settings->setValue("in_address", comboLocalIpAddress->currentText());
-
-	QString ip_or_domain( comboRemoteAddress->itemData(comboRemoteAddress->currentIndex(), Qt::UserRole).toString());
-	mainObject->settings->setValue("out_with", ip_or_domain);
-	if(treeWidget->currentItem()){
-		mainObject->settings->setValue("mpserver", treeWidget->currentItem()->text(C_DOMAIN));
-	}
-
-	mainObject->settings->setValue("in_port", comboLocalPort->currentText());
-	mainObject->settings->setValue("out_port", comboRemotePort->currentText());
-
-	mainObject->settings->setValue("in_hz", comboHzIn->currentText());
-	mainObject->settings->setValue("out_hz", comboHzOut->currentText());
-
-	mainObject->settings->setValue("fgcom", grpFgCom->isChecked());
-	mainObject->settings->setValue("fgcom_no", txtFgComNo->text());
-	mainObject->settings->setValue("fgcom_port", txtFgComPort->text());
 
 
-	mainObject->settings->setValue("telnet", grpTelnet->isChecked());
-	mainObject->settings->setValue("telnet_port", txtTelnet->text());
-
-	mainObject->settings->setValue("http", grpHttp->isChecked());
-	mainObject->settings->setValue("http_port", txtHttp->text());
-
-	mainObject->settings->setValue("screenshot", grpScreenShot->isChecked());
-	mainObject->settings->setValue("screenshot_port", txtScreenShot->text());
-
-	mainObject->settings->sync();
-}
-
-
-//=============================================================
-// Load Settings
-void NetworkWidget::load_settings(){
-	int idx;
-
-	grpMpServer->setChecked( mainObject->settings->value("enable_mp").toBool() );
-
-	checkBoxIn->setChecked( mainObject->settings->value("in").toBool() );
-	checkBoxOut->setChecked( mainObject->settings->value("out").toBool() );
-
-	idx = comboLocalIpAddress->findText(mainObject->settings->value("in_address").toString(), Qt::MatchExactly);
-	comboLocalIpAddress->setCurrentIndex( idx == -1 ? 0 : idx);
-
-	idx = comboRemoteAddress->findData(mainObject->settings->value("out_with").toString(), Qt::UserRole, Qt::MatchExactly);
-	comboRemoteAddress->setCurrentIndex( idx == -1 ? 0 : idx);
-
-	idx = comboHzIn->findText(mainObject->settings->value("in_hz").toString(), Qt::MatchExactly);
-	comboHzIn->setCurrentIndex( idx == -1 ? 0 : idx );
-	idx = comboHzOut->findText(mainObject->settings->value("out_hz").toString(), Qt::MatchExactly);
-	comboHzOut->setCurrentIndex( idx == -1 ? 0 : idx );
-
-	idx = comboLocalPort->findText(mainObject->settings->value("in_port").toString(), Qt::MatchExactly);
-	comboLocalPort->setCurrentIndex( idx == -1 ? 0 : idx );
-	idx = comboRemotePort->findText(mainObject->settings->value("out_port").toString(), Qt::MatchExactly);
-	comboRemotePort->setCurrentIndex( idx == -1 ? 0 : idx );
-
-
-	grpFgCom->setChecked( mainObject->settings->value("fgcom").toBool() );
-	txtFgComNo->setText( mainObject->settings->value("fgcom_no", mainObject->settings->default_fgcom_no()).toString());
-	txtFgComPort->setText( mainObject->settings->value("fgcom_port", mainObject->settings->default_fgcom_port()).toString());
-
-
-	grpHttp->setChecked( mainObject->settings->value("http").toBool() );
-	grpTelnet->setChecked( mainObject->settings->value("telnet").toBool() );
-	grpScreenShot->setChecked( mainObject->settings->value("screenshot").toBool() );
-
-	txtHttp->setText(mainObject->settings->value("http_port", "8080").toString());
-	txtTelnet->setText(mainObject->settings->value("telnet_port", "5555").toString());
-	txtScreenShot->setText(mainObject->settings->value("screenshot_port", "8081").toString());
-
-	on_checkbox_in();
-	on_checkbox_out();
-}
 
 //=============================================================
 // Validate
 QString NetworkWidget::validate(){
-	if(grpMpServer->isChecked()){
-		if(checkBoxOut->isChecked()){
-			if(!treeWidget->currentItem()){
-				treeWidget->setFocus();
-				return QString("No multiplayer out server selected");;
-			}
+	if(grpMpServerOut->isChecked()){
+		if(!treeWidget->currentItem()){
+			treeWidget->setFocus();
+			return QString("No multiplayer out server selected");;
 		}
 	}
-	return QString();
+	return QString("");
 }
 
 
 
+//================================================================
 
+void NetworkWidget::on_telnet()
+{
+	emit setx("--telnet=", grpTelnet->isChecked(), txtTelnet->text());
+}
+
+void NetworkWidget::on_http()
+{
+	emit setx("--httpd=", grpHttp->isChecked(), txtHttp->text());
+}
+
+void NetworkWidget::on_screenshot()
+{
+	emit setx("--jpg-httpd=", grpScreenShot->isChecked(), txtScreenShot->text());
+}
+
+
+
+//=============================================================
+// Update Widgets
+void NetworkWidget::on_upx(QString option, bool enabled, QString value)
+{
+
+
+	if(option == "--multiplay=in" || option == "--multiplay=out"){
+
+		// --multiplay=out,10,server.ip.address,5000
+		if(value.contains(",")){
+			QStringList parts;
+			parts = value.split(",",QString::SkipEmptyParts);
+
+			if(option == "--multiplay=in"){
+				grpMpServerIn->setChecked(enabled);
+				Helpers::select_combo(comboLocalIpAddress, parts.at(1));
+				Helpers::select_combo(comboHzIn, parts.at(0));
+				Helpers::select_combo(comboLocalPort, parts.at(2));
+
+			}else{
+				grpMpServerOut->setChecked(enabled);
+				Helpers::select_combo(comboHzOut, parts.at(0));
+				Helpers::select_combo(comboRemotePort, parts.at(2));
+				QList<QTreeWidgetItem *> items = treeWidget->findItems(parts.at(1), Qt::MatchExactly, C_IP_ADDRESS);
+				if(items.size() > 0){
+					treeWidget->setCurrentItem(items.at(0));
+				}
+			}
+		}
+
+
+	}else if(option == "--fgcom="){
+		grpFgCom->setChecked(enabled);
+		if(value.contains(":")){
+			txtFgComNo->setText( value.split(":").at(0));
+			txtFgComPort->setText( value.split(":").at(1));
+		}
+
+	}else if(option == "--telnet="){
+		grpTelnet->setChecked(enabled);
+		txtTelnet->setText(value);
+
+
+	}else if(option == "--httpd="){
+		grpHttp->setChecked(enabled);
+		txtHttp->setText(value);
+
+
+	}else if(option == "--jpg-httpd="){
+		grpScreenShot->setChecked(enabled);
+		txtScreenShot->setText(value);
+
+	}
+}

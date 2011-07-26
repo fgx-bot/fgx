@@ -13,9 +13,9 @@
 #include <QtGui/QLabel>
 #include <QtGui/QComboBox>
 
-#include "mpmapwidget.h"
-#include "coresettingswidget.h"
-#include "launcherwindow.h"
+#include "mpmap/mpmapwidget.h"
+#include "panes/coresettingswidget.h"
+#include "launcher/launcherwindow.h"
 
 
 MpMapWidget::MpMapWidget(MainObject *mOb, QWidget *parent) :
@@ -46,17 +46,12 @@ MpMapWidget::MpMapWidget(MainObject *mOb, QWidget *parent) :
     toolbar->addWidget(comboServer);
 	
 	//**get callsign
-	QString mpmapFollowCallsign;
-	mpmapFollowCallsign.append(mainObject->settings->value("callsign").toString());
-	
+
 	//**add callsign to url
-	QString mapURL1("http://mpmap01.flightgear.org/?follow=");
-	QString mapURL2("http://mpmap02.flightgear.org/?follow=");
-	mapURL1.append(mpmapFollowCallsign);
-	mapURL2.append(mpmapFollowCallsign);
-    comboServer->addItem("MpMap-01", QVariant(mapURL1));
-    comboServer->addItem("MpMap-02", QVariant(mapURL2));
-    connect(comboServer, SIGNAL(currentIndexChanged(int)), this, SLOT(on_combo_server(int)));
+	comboServer->addItem("MpMap-01", QVariant("http://mpmap01.flightgear.org/"));
+	comboServer->addItem("MpMap-02", QVariant("http://mpmap02.flightgear.org/"));
+	comboServer->setCurrentIndex(0);
+	connect(comboServer, SIGNAL(currentIndexChanged(int)), this, SLOT(on_combo_server()) );
 
 	//=============================================================
 	//== Cache
@@ -87,10 +82,11 @@ MpMapWidget::MpMapWidget(MainObject *mOb, QWidget *parent) :
     statusBar->addPermanentWidget(progressBar);
 
     //*** Initialise
-    on_combo_server(0);
+	on_combo_server();
 }
 
-//** Progress Slots
+//=============================================================
+//== Progress Slots
 void MpMapWidget::start_progress(){
     progressBar->setVisible(true);
 }
@@ -101,20 +97,16 @@ void MpMapWidget::update_progress(int v){
 void MpMapWidget::end_progress(bool Ok){
 	Q_UNUSED(Ok);
     progressBar->setVisible(false);
-	QString statusURL = comboServer->itemData(comboServer->currentIndex()).toString();
-	statusURL.append(mpmapFollowCallsign);
-    statusBar->showMessage( statusURL );
+	statusBar->showMessage( webView->url().toString() );
 }
 
 
-void MpMapWidget::on_combo_server(int index){
-
-    QString server_url = comboServer->itemData(index).toString();
-	webView->setUrl(  QUrl(server_url)  );
-    statusBar->showMessage(QString("Loading: ").append(server_url));
-    //qDebug("on_combo");
-
- }
+void MpMapWidget::on_combo_server(){
+	QUrl server_url( comboServer->itemData(comboServer->currentIndex()).toString() );
+	server_url.addQueryItem("follow", mainObject->settings->value("callsign").toString() );
+	webView->load( server_url );
+	statusBar->showMessage(QString("Loading: ").append( server_url.toString()) );
+}
 
 //** Overide the closeEvent
 void MpMapWidget::closeEvent(QCloseEvent *event)

@@ -11,6 +11,7 @@
 #include <QtGui/QFileDialog>
 
 #include "fgexepage.h"
+#include "xobjects/xopt.h"
 
 FgExePage::FgExePage(MainObject *mob, QWidget *parent) :
     QWizardPage(parent)
@@ -64,7 +65,7 @@ FgExePage::FgExePage(MainObject *mob, QWidget *parent) :
 	connect(actionFgfsSelectPath, SIGNAL(triggered()), this, SLOT(on_select_fgfs_path()));
 
 	// does not work for win/osx
-	if(mainObject->settings->runningOs() == XSettings::LINUX){
+	if(mainObject->runningOs() == XSettings::LINUX){
 		QAction *actionFgfsAutoSelect = new QAction(menuFgfs);
 		menuFgfs->addAction(actionFgfsAutoSelect);
 		actionFgfsAutoSelect->setText(tr("Autodetect"));
@@ -83,6 +84,7 @@ FgExePage::FgExePage(MainObject *mob, QWidget *parent) :
 	layoutExe->setColumnStretch(2,0);
 
 	registerField("fgfs_use_default", radioDefault);
+	registerField("fgfs_use_custom", radioCustom);
 	registerField("fgfs_custom_path", txtFgfs);
 
 }
@@ -130,7 +132,7 @@ void FgExePage::on_select_fgfs_path(){
 void FgExePage::check_paths()
 {
 	//= Check the default path
-	QString default_path = mainObject->settings->fgfs_default_path();
+	QString default_path = mainObject->X->fgfs_default_path();
 	bool default_exists = QFile::exists(default_path);
 	QString lbl_default(default_path);
 	lbl_default.append( default_exists ? " - Ok" : " - Not Found" );
@@ -156,9 +158,14 @@ void FgExePage::check_paths()
 			lblCustom->setStyleSheet(custom_exists ?  "color: green;" : "color:#990000;");
 			if(custom_exists){
 				QFileInfo fInfo(custom_path);
-				if(!fInfo.isExecutable()){
-					lblCustom->setText("Not executable");
+				if(fInfo.isDir()){
+					lblCustom->setText("Need a file path, not a directory");
 					lblCustom->setStyleSheet("color:#990000;");
+				}else{
+					if(!fInfo.isExecutable()){
+						lblCustom->setText("Not executable");
+						lblCustom->setStyleSheet("color:#990000;");
+					}
 				}
 			}
 		}
@@ -173,9 +180,12 @@ void FgExePage::check_paths()
 //= initializePage
 void FgExePage::initializePage()
 {
-	radioDefault->setChecked( mainObject->settings->fgfs_use_default() );
-	lblDefault->setText( QString("Default: ").append(mainObject->settings->fgfs_default_path()) );
-	txtFgfs->setText( mainObject->settings->value("fgfs_custom_path").toString() );
+	XOpt opt = mainObject->X->get_opt("fgfs_custom_path");
+	radioDefault->setChecked( opt.enabled == false );
+	radioCustom->setChecked( opt.enabled == true );
+
+	lblDefault->setText( QString("Default: ").append(mainObject->X->fgfs_default_path()) );
+	txtFgfs->setText( opt.value );
 	check_paths();
 }
 
@@ -187,10 +197,14 @@ bool FgExePage::validatePage()
 {
 	check_paths();
 	if(radioDefault->isChecked()){
-		QString exFile = mainObject->settings->fgfs_default_path();
+		QString exFile = mainObject->X->fgfs_default_path();
 		if(QFile::exists(exFile)){
-			//TODO check its executable
-			return true;
+			QFileInfo fInfo(exFile);
+			if(fInfo.isFile() && fInfo.isExecutable()){
+				return true;
+			}else{
+				return false;
+			}
 		}else{
 			return false;
 		}

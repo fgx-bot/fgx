@@ -13,7 +13,7 @@
 #include <QtGui/QComboBox>
 
 #include "xobjects/mainobject.h"
-
+#include "xwidgets/xgroupboxes.h"
 
 class MainObject;
 
@@ -36,10 +36,10 @@ public:
 
 	MainObject *mainObject;
 
-	QGroupBox *grpMpServer;
+	XGroupHBox *grpMpServerIn;
+	XGroupVBox *grpMpServerOut;
 
-	QCheckBox *checkBoxIn;
-	QCheckBox *checkBoxOut;
+
 	QComboBox *comboLocalIpAddress;
 	QComboBox *comboRemoteAddress;
 	QComboBox *comboRemotePort;
@@ -49,49 +49,47 @@ public:
 	QTreeWidget *treeWidget;
 
 
-	QGroupBox *grpFgCom;
+	XGroupGBox *grpFgCom;
 	QLineEdit *txtFgComNo;
 	QLineEdit *txtFgComPort;
 
-	QGroupBox *grpTelnet;
+	XGroupHBox *grpTelnet;
 	QLineEdit *txtTelnet;
 
-	QGroupBox *grpHttp;
+	XGroupHBox *grpHttp;
 	QLineEdit *txtHttp;
 
-	QGroupBox *grpScreenShot;
+	XGroupHBox *grpScreenShot;
 	QLineEdit *txtScreenShot;
 
 
 	void load_local_addresses();
 	void populate_combo_hz(QComboBox *combo);
-	void save_settings();
-	void load_settings();
+
 	QString validate();
-	QStringList get_args();
+
 
 signals:
-	void set_arg(QString action, QString arg, QString value);
-
+	void setx(QString option, bool enabled, QString value);
 
 public slots:
 	void dns_lookup();
 	void on_dns_lookup_callback(const QHostInfo &hostInfo);
 	void on_telnet_data(QString, QString);
 
-	void on_callsign_changed(QString);
 	void set_mp_server();
-
 	void set_fgcom();
 
-
-	void on_checkbox_in();
-	void on_checkbox_out();
+	void on_http();
+	void on_telnet();
+	void on_screenshot();
 
 	void on_browse_http();
 	void on_browse_screenshot();
 	void on_open_telnet();
 	
+	void on_upx(QString option, bool enabled, QString value);
+
 };
 
 #endif // NETWORKWIDGET_H
