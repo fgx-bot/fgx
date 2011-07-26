@@ -203,7 +203,7 @@ void CoreSettingsWidget::load_joysticks(){
     QStringList args;
     startJSDemoPath = "js_demo";
 
-	// TODO Fix this macro
+	// this macro is ok
 #ifdef Q_OS_MAC
     startJSDemoPath = mainObject->X->fgfs_path();
 	startJSDemoPath.chop(4);

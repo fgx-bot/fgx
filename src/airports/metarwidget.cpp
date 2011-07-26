@@ -31,10 +31,32 @@ void MetarWidget::load_metar(QString apt)
 {
 	QProcess process;
 	QStringList args;
+	QString startMetarPath;
+	//startMetarPath = "metar";
 	args << "-r" << "-v" << apt;
 
 	txtMetar->setPlainText( QString("Loading..\n\nmetar %1").arg(apt) );
-	process.start("metar", args, QIODevice::ReadOnly);
+
+#ifdef Q_OS_MAC
+    startMetarPath = mainObject->X->fgfs_path();
+	startMetarPath.chop(4);
+	startMetarPath.append("metar");
+    process.start(startMetarPath, args, QIODevice::ReadOnly);
+#elif defined(Q_OS_UNIX)
+	if ( ! mainObject->X->fgroot_use_default() ) {
+		startMetarPath = mainObject->X->fgfs_path();
+        startMetarPath.chop(4);
+        startMetarPath.append("metar");
+    }
+	QStringList extra_env = mainObject->X->get_fgfs_env();
+    if (extra_env.size()) {
+        //= append new env vars
+        QStringList env = QProcess::systemEnvironment();
+        env << extra_env;
+        process.setEnvironment(env);
+    }
+#endif
+	process.start(startMetarPath, args, QIODevice::ReadOnly);
 	if(process.waitForStarted()){
 		process.waitForFinished(3000);
 		QString ok_result = process.readAllStandardOutput();
